@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smart Attendance</title>
+<style>
+:root{--navy:#0e2a47;--blue:#2f6fed;--ink:#1b2b44;--mut:#64748b;--bg:#eef3f9;--ok:#16a34a;--bad:#e11d48;--line:#e3eaf3;--b1:#2f6fed;--b2:#7c3aed;--card:#fff;--hov:#f6f9fd;--track:#e8eef6}
+[data-theme=dark]{--bg:#0b1220;--ink:#e6edf7;--mut:#94a3b8;--line:#22304a;--card:#131d33;--hov:#1a2742;--track:#243251}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+button,input{font:inherit}
+.hide{display:none!important}
+button{border:0;border-radius:10px;padding:10px 16px;background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(47,111,237,.25);transition:transform .1s}
+button:active{transform:scale(.97)}
+button.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+button:focus-visible,input:focus-visible{outline:3px solid #8db4ff;outline-offset:2px}
+input{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-width:0}
+input:focus{border-color:var(--blue)}
+#login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#0e2a47,var(--b1) 60%,var(--b2))}
+.lcard{--card:#fff;--ink:#1b2b44;--line:#e3eaf3;color:var(--ink);background:#fff;border-radius:20px;padding:30px;width:min(360px,92vw);display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.lcard h2{margin:0}.sub{margin:0;color:var(--mut);font-size:.9rem}
+.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+aside{background:linear-gradient(180deg,#0e2a47,#1a4a7a);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:10px;align-items:center;font-weight:700;padding:0 8px}
+.brand small{display:block;font-weight:500;color:#9fb6d1;font-size:.78rem}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#f59e0b,#f97316);display:grid;place-items:center;font-size:1.3rem;color:#fff}
+nav{display:flex;flex-direction:column;gap:4px;flex:1}
+nav button,nav button.ghost{background:transparent;color:#c7d7ea;text-align:left;padding:11px 12px;border:0;box-shadow:none}
+nav button:hover{background:rgba(255,255,255,.08)}
+nav button.on{background:rgba(255,255,255,.17);color:#fff;font-weight:700}
+aside button.out{background:rgba(255,255,255,.12);color:#fff;border:0}
+main{padding:28px;max-width:980px;width:100%}
+.title{margin:0 0 16px}
+h3{margin:4px 0 10px}
+.box{background:var(--card);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 6px 24px rgba(14,42,71,.07)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px}
+.stat{border-radius:16px;padding:18px;color:#fff;display:flex;flex-direction:column;gap:6px;box-shadow:0 8px 20px rgba(14,42,71,.15)}
+.stat span{opacity:.92;font-size:.85rem}.stat b{font-size:1.9rem}
+.c1{background:linear-gradient(135deg,var(--b1),var(--b2))}.c2{background:linear-gradient(135deg,#16a34a,#14b8a6)}
+.c3{background:linear-gradient(135deg,#f59e0b,#f97316)}.c4{background:linear-gradient(135deg,#e11d48,#fb7185)}
+.row{display:flex;align-items:center;gap:10px;padding:11px 8px;border-bottom:1px solid var(--line);border-radius:8px}
+.row:hover{background:var(--hov)}.row:last-child{border:0}.row .n{flex:1;font-weight:600}
+.row small{color:var(--mut);display:block;font-weight:400}
+.tog{width:46px;height:46px;border-radius:50%;padding:0;font-weight:800}
+.tog.P{background:linear-gradient(135deg,#16a34a,#22c55e)}.tog.A{background:linear-gradient(135deg,#e11d48,#f43f5e)}
+.bar{height:10px;background:var(--track);border-radius:6px;width:110px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.warn{color:var(--bad);font-weight:700}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+#msg{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 18px;border-radius:12px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media(max-width:820px){.shell{display:block}aside{position:static;height:auto;padding:12px;gap:10px}nav{flex-direction:row;overflow-x:auto;flex:none}nav button{white-space:nowrap}main{padding:14px}}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none;font-size:.85rem}
+.donut{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;flex:none;background:conic-gradient(var(--c) calc(var(--p)*1%),rgba(255,255,255,.25) 0)}
+.donut span{width:88px;height:88px;border-radius:50%;background:#173b66;color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.35rem}
+.hero{background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 24px rgba(47,111,237,.3)}
+.hero p{margin:4px 0}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:.78rem;font-weight:700}
+.pill.ok{background:#dcfce7;color:#166534}.pill.bad{background:#ffe4e6;color:#9f1239}
+section{animation:fade .3s}@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+@media print{aside,.tools,#msg{display:none!important}.shell{display:block}body{background:#fff;color:#000}.box{box-shadow:none}}
+</style></head><body>
+<div id="login"><div class="lcard"><div class="logo">✓</div><h2 id="lname">Smart Attendance</h2><p class="sub">Teachers use admin. Students use their roll number.</p>
+<input id="u" placeholder="Username" value="admin"><input id="p" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+<button onclick="login()">Log in</button><small id="le" class="warn"></small></div></div>
+
+<div id="app" class="hide">
+<div class="shell"><aside><div class="brand"><span class="logo">✓</span><div><span id="bname">Smart Attendance</span><small id="who"></small></div></div>
+<nav><button id="t-dash" onclick="tab('dash')">🏠 Dashboard</button><button id="t-mark" class="ghost" onclick="tab('mark')">✅ Mark attendance</button><button id="t-stu" class="ghost" onclick="tab('stu')">👥 Students</button><button id="t-rep" class="ghost" onclick="tab('rep')">📄 Report</button><button id="t-cha" class="ghost" onclick="tab('cha')">📊 Charts</button><button id="t-qr" class="ghost" onclick="tab('qr')">📱 QR check-in</button><button id="t-me" class="ghost" onclick="tab('me')">🙋 My attendance</button><button id="t-set" class="ghost" onclick="tab('set')">🎨 Settings</button><button id="t-pw" class="ghost" onclick="tab('pw')">🔒 Password</button></nav>
+<button class="ghost out" onclick="theme()">🌓 Dark / Light</button><button class="ghost out" onclick="logout()">Log out</button></aside><main>
+<section id="dash" class="hide"><h2 class="title">Dashboard</h2><div class="hero" id="hero"></div><div class="stats" id="stats"></div><div class="box"><h3>Students below 75%</h3><div id="low"></div></div></section>
+
+<section id="mark"><div class="box">
+ <div class="tools"><input type="date" id="date" onchange="loadMark()"><input id="q" placeholder="🔍 Search name or roll" oninput="drawMark()">
+ <button class="ghost" onclick="setAll('P')">All present</button><button class="ghost" onclick="setAll('A')">All absent</button>
+ <button onclick="saveMark()">Save attendance</button></div>
+ <div id="mlist"></div></div></section>
+
+<section id="stu" class="hide"><div class="box">
+ <div class="tools"><input id="roll" placeholder="Roll no" size="8"><input id="name" placeholder="Student name"><input id="cls" placeholder="Class" size="8">
+ <button onclick="addStu()">Add student</button></div><div id="slist"></div></div></section>
+
+<section id="rep" class="hide"><div class="box">
+ <div class="tools"><button onclick="exportCsv()">Download CSV</button><button class="ghost" onclick="exportXlsx()">📗 Excel</button><button class="ghost" onclick="exportPdf()">📕 PDF</button><button class="ghost" onclick="window.print()">🖨 Print</button><span style="color:var(--mut)">Students below 75% are flagged.</span></div>
+ <div id="rlist"></div></div></section>
+<section id="cha" class="hide"><div class="box"><h3>Daily attendance, last 14 days</h3><div id="cd"></div><h3>Monthly attendance</h3><div id="cm"></div></div></section>
+<section id="qr" class="hide"><div class="box"><p>Open this app on the teacher computer using its Wi-Fi address (for example http://192.168.1.5:3000), pick a date and start check-in. Students scan the code, log in with their roll number and are marked present. The code works for 10 minutes.</p>
+<div class="tools"><input type="date" id="qd"><button onclick="startQr()">Start check-in</button></div><div id="qimg"></div><p id="qurl"></p><div id="qlive"></div></div></section>
+<section id="me" class="hide"><div class="box" id="mebox"></div></section>
+<section id="set" class="hide"><div class="box"><h3>Brand your app</h3>
+<div class="tools"><input id="bn" placeholder="College / school name" size="30"></div>
+<div class="tools"><label>Main colour <input type="color" id="bc1" value="#2f6fed"></label><label>Accent colour <input type="color" id="bc2" value="#7c3aed"></label></div>
+<div class="tools"><label>Logo <input type="file" id="bl" accept="image/*"></label><button class="ghost" onclick="brand.logo='';toast('Logo removed. Click Save.')">Remove logo</button></div>
+<button onclick="saveBrand()">Save branding</button></div></section>
+<section id="pw" class="hide"><div class="box"><div class="tools"><input id="po" type="password" placeholder="Old password"><input id="pn" type="password" placeholder="New password (6+ characters)"><button onclick="chPw()">Change password</button></div></div></section>
+</main></div></div><div id="msg"></div>
+
+<script>
+let role=localStorage.getItem("role"),code=new URLSearchParams(location.search).get("c");
+let token=localStorage.getItem('tk'),students=[],marks={};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(t){const m=$('msg');m.textContent=t;m.style.display='block';setTimeout(()=>m.style.display='none',2200)}
+async function api(url,opt={}){
+  const r=await fetch(url,{...opt,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}});
+  if(r.status===401&&url!=='/api/login'){logout();throw 0}
+  const d=await r.json();if(!r.ok)throw new Error(d.error||'Something went wrong');return d}
+async function login(){
+  try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({username:$('u').value,password:$('p').value})});
+  token=d.token;role=d.role;localStorage.setItem('tk',token);localStorage.setItem('role',role);start()}catch(e){$('le').textContent=e.message}}
+function logout(){localStorage.removeItem('tk');token=null;$('app').classList.add('hide');$('login').classList.remove('hide')}
+const TABS=['dash','mark','stu','rep','cha','qr','set','me','pw'],ADMIN=['dash','mark','stu','rep','cha','qr','set','pw'],STU=['me','pw'];
+function start(){$('login').classList.add('hide');$('app').classList.remove('hide');
+  const ok=role==='admin'?ADMIN:STU;TABS.forEach(x=>$('t-'+x).style.display=ok.includes(x)?'':'none');
+  $('date').value=$('qd').value=new Date().toISOString().slice(0,10);$('who').textContent=role==='admin'?'Teacher':'Student';tab(ok[0]);
+  if(code&&role==='student'){const c=code;code=null;history.replaceState({},'','/');
+    api('/api/checkin',{method:'POST',body:JSON.stringify({code:c})}).then(()=>{toast('Marked present');loadMe()}).catch(e=>toast(e.message))}}
+function tab(t){if(t!=='qr')clearInterval(qt);TABS.forEach(x=>{$(x).classList.toggle('hide',x!==t);$('t-'+x).className=x===t?'on':'ghost'});
+  ({set:loadSet,dash:loadDash,mark:loadMark,stu:loadStu,rep:loadRep,cha:loadCha,me:loadMe,qr(){},pw(){}})[t]()}
+function bars(el,rows){$(el).innerHTML=rows.length?rows.map(r=>`<div class="row"><span style="width:84px">${esc(r.l)}</span><div class="bar" style="flex:1;width:auto"><i style="width:${r.pct}%;background:${r.pct<75?'var(--bad)':'var(--ok)'}"></i></div><b style="width:48px;text-align:right">${r.pct}%</b></div>`).join(''):'<p>No data yet.</p>'}
+async function loadDash(){
+  const [s,r,m]=await Promise.all([api('/api/students'),api('/api/report'),api('/api/attendance?date='+new Date().toISOString().slice(0,10))]);
+  const pres=Object.values(m).filter(v=>v==='P').length,marked=Object.keys(m).length,t=r.filter(x=>x.total),low=t.filter(x=>x.pct<75);
+  const avg=t.length?Math.round(t.reduce((a,x)=>a+x.pct,0)/t.length):0;
+  const hr=new Date().getHours(),tp=marked?Math.round(100*pres/marked):0;
+  $('hero').innerHTML=`<div style="display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><h2 style="margin:0">${hr<12?'Good morning':hr<17?'Good afternoon':'Good evening'}, Teacher 👋</h2><p>${new Date().toDateString()}</p><p>${esc(COLLEGE)}</p></div><div style="text-align:center"><div class="donut" style="--p:${tp};--c:#4ade80"><span>${tp}%</span></div><small>Present today</small></div></div>`;
+  $('stats').innerHTML=[['Students',s.length,'c1'],['Present today',marked?pres+' of '+marked:'Not marked yet','c2'],['Average attendance',avg+'%','c3'],['Below 75%',low.length,'c4']].map(x=>`<div class="stat ${x[2]}"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
+  $('low').innerHTML=low.length?low.map(x=>`<div class="row"><div class="n">${esc(x.name)}<small>Roll ${esc(x.roll)}</small></div><b class="warn">${x.pct}%</b></div>`).join(''):'<p>Everyone is at 75% or above.</p>'}
+async function loadCha(){const d=await api('/api/chart');bars('cd',d.daily.reverse().map(r=>({l:r.date.slice(5),pct:r.pct})));bars('cm',d.monthly.map(r=>({l:r.m,pct:r.pct})))}
+function loadQrLib(){return new Promise(r=>{if(window.QRCode)return r();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=r;s.onerror=r;document.head.appendChild(s)})}
+async function startQr(){const d=await api('/api/qr/start',{method:'POST',body:JSON.stringify({date:$('qd').value})});
+  const url=location.origin+'/?c='+d.code;$('qimg').innerHTML='';$('qurl').textContent='Link: '+url;await loadQrLib();
+  if(window.QRCode)new QRCode($('qimg'),{text:url,width:220,height:220});
+  qcode=d.code;clearInterval(qt);pollQr();qt=setInterval(pollQr,3000);
+  $('qurl').textContent='Link: '+url}
+async function loadMe(){const d=await api('/api/me'),n=3*d.total-4*d.present,ok=!d.total||d.pct>=75;
+  $('mebox').innerHTML=`<div class="hero" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap"><div class="donut" style="--p:${d.pct};--c:${ok?'#4ade80':'#fb7185'}"><span>${d.pct}%</span></div>
+  <div><h2 style="margin:0">${esc(d.name)}</h2><p>Roll ${esc(d.roll)} · ${d.present} of ${d.total} days present</p><span class="pill ${ok?'ok':'bad'}">${ok?'On track':'Attendance low'}</span>${ok?'':`<p>Attend the next ${n} classes to reach 75%.</p>`}</div></div>
+  <h3>History</h3>`+d.days.map(x=>`<div class="row"><span class="n">${esc(x.date)}</span><span class="pill ${x.status==='P'?'ok':'bad'}">${x.status==='P'?'Present':'Absent'}</span></div>`).join('')}
+async function chPw(){try{await api('/api/password',{method:'POST',body:JSON.stringify({old:$('po').value,new:$('pn').value})});$('po').value=$('pn').value='';toast('Password changed')}catch(e){toast(e.message)}}
+async function loadMark(){
+  students=await api('/api/students');marks=await api('/api/attendance?date='+$('date').value);
+  students.forEach(s=>{if(!marks[s.id])marks[s.id]='P'});drawMark()}
+function drawMark(){const q=$('q').value.toLowerCase(),p=students.filter(s=>marks[s.id]==='P').length;
+  const list=students.filter(s=>(s.name+s.roll).toLowerCase().includes(q));
+  $('mlist').innerHTML=`<p><span class="pill ok">Present ${p}</span> <span class="pill bad">Absent ${students.length-p}</span></p>`+(list.length?list.map(s=>`<div class="row">${av(s.name)}<div class="n">${esc(s.name)}<small>Roll ${esc(s.roll)} ${esc(s.class)}</small></div><button class="tog ${marks[s.id]}" aria-label="Toggle ${esc(s.name)}" onclick="flip(${s.id})">${marks[s.id]}</button></div>`).join(''):'<p>No students found. Add them in the Students tab.</p>')}
+function flip(id){marks[id]=marks[id]==='P'?'A':'P';drawMark()}
+function setAll(v){students.forEach(s=>marks[s.id]=v);drawMark()}
+async function saveMark(){
+  await api('/api/attendance',{method:'POST',body:JSON.stringify({date:$('date').value,records:students.map(s=>({student_id:s.id,status:marks[s.id]}))})});
+  toast('Attendance saved')}
+async function loadStu(){
+  students=await api('/api/students');
+  $('slist').innerHTML=students.map(s=>`<div class="row">${av(s.name)}<div class="n">${esc(s.name)}<small>Roll ${esc(s.roll)} ${esc(s.class)}</small></div><button class="ghost" onclick="delStu(${s.id})">Remove</button></div>`).join('')||'<p>No students yet.</p>'}
+async function addStu(){
+  try{await api('/api/students',{method:'POST',body:JSON.stringify({roll:$('roll').value,name:$('name').value,class:$('cls').value})});
+  ['roll','name','cls'].forEach(i=>$(i).value='');toast('Student added');loadStu()}catch(e){toast(e.message)}}
+async function delStu(id){if(confirm('Remove this student and their attendance?')){await api('/api/students/'+id,{method:'DELETE'});loadStu()}}
+async function loadRep(){
+  const r=await api('/api/report');
+  $('rlist').innerHTML=r.map(s=>`<div class="row">${av(s.name)}<div class="n">${esc(s.name)}<small>Roll ${esc(s.roll)} · ${s.present}/${s.total} days${need(s)}</small></div>
+  <div class="bar"><i style="width:${s.pct}%;background:${s.pct<75?'var(--bad)':'var(--ok)'}"></i></div>
+  <b class="${s.total&&s.pct<75?'warn':''}" style="width:56px;text-align:right">${s.pct}%</b></div>`).join('')||'<p>No data yet.</p>'}
+async function exportCsv(){
+  const r=await fetch('/api/export',{headers:{Authorization:'Bearer '+token}});
+  const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download='attendance.csv';a.click()}
+let COLLEGE='Your College Name',qt=null,qcode='',brand={};const COLORS=['#2f6fed','#16a34a','#f59e0b','#e11d48','#7c3aed','#0ea5e9','#14b8a6'];
+document.title=COLLEGE+' | Smart Attendance';document.documentElement.dataset.theme=localStorage.getItem('th')||'light';
+const av=n=>`<span class="av" style="background:${COLORS[[...n].reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length]}">${esc(n.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase())}</span>`;
+const need=s=>{const n=3*s.total-4*s.present;return s.total&&n>0?` · needs ${n} more to reach 75%`:''};
+function theme(){const d=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=d;localStorage.setItem('th',d)}
+async function pollQr(){if(!qcode)return;try{const d=await api('/api/qr/status?code='+qcode),m=Math.floor(d.left/60),s=String(d.left%60).padStart(2,'0');
+  $('qlive').innerHTML=`<p><span class="pill ok">${d.list.length} of ${d.total} checked in</span> <span class="pill ${d.left?'ok':'bad'}">${d.left?m+':'+s+' left':'Code expired'}</span></p>`+
+  d.list.map(x=>`<div class="row">${av(x.name)}<div class="n">${esc(x.name)}<small>Roll ${esc(x.roll)} · ${esc(x.time)}</small></div><span class="pill ok">Present</span></div>`).join('')}catch(e){}}
+function applyBrand(b){if(!b)return;const r=document.documentElement.style;if(b.c1)r.setProperty('--b1',b.c1);if(b.c2)r.setProperty('--b2',b.c2);
+  if(b.name){COLLEGE=b.name;document.title=COLLEGE+' | Smart Attendance';$('lname').textContent=$('bname').textContent=COLLEGE}
+  if(b.logo)document.querySelectorAll('.logo').forEach(l=>{l.style.background='#fff';l.innerHTML=`<img src="${b.logo}" style="width:100%;height:100%;object-fit:contain;border-radius:10px">`})}
+async function loadSet(){brand=await api('/api/brand');$('bn').value=brand.name||'';$('bc1').value=brand.c1||'#2f6fed';$('bc2').value=brand.c2||'#7c3aed'}
+async function saveBrand(){const b={name:$('bn').value,logo:brand.logo||'',c1:$('bc1').value,c2:$('bc2').value};
+  try{await api('/api/brand',{method:'POST',body:JSON.stringify(b)});applyBrand(b);toast('Branding saved')}catch(e){toast(e.message)}}
+$('bl').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=Math.min(1,160/Math.max(im.width,im.height));
+  c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);brand.logo=c.toDataURL('image/png');toast('Logo ready. Click Save branding.')};im.src=URL.createObjectURL(f)};
+function loadLib(src,name){return new Promise(r=>{if(window[name])return r();const s=document.createElement('script');s.src=src;s.onload=r;s.onerror=r;document.head.appendChild(s)})}
+async function exportXlsx(){const r=await api('/api/report');await loadLib('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX');
+  if(!window.XLSX){toast('Excel needs internet. Downloading CSV instead.');return exportCsv()}
+  const ws=XLSX.utils.json_to_sheet(r.map(s=>({Roll:s.roll,Name:s.name,Class:s.class,Present:s.present,Total:s.total,'Percent':s.pct,Status:s.total&&s.pct<75?'Low':'OK'})));
+  ws['!cols']=[{wch:8},{wch:24},{wch:8},{wch:9},{wch:8},{wch:10},{wch:8}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Attendance');XLSX.writeFile(wb,'attendance.xlsx')}
+async function exportPdf(){const r=await api('/api/report'),w=window.open('','_blank');if(!w)return toast('Allow pop-ups to create the PDF');
+  w.document.write(`<html><head><title>Attendance Report</title><style>body{font-family:Segoe UI,sans-serif;padding:30px;color:#1b2b44}h1{margin:0}p{color:#64748b}table{border-collapse:collapse;width:100%;margin-top:16px}th{background:#0e2a47;color:#fff;text-align:left}th,td{padding:8px 10px;border-bottom:1px solid #e3eaf3}.low{color:#e11d48;font-weight:700}</style></head><body><h1>${esc(COLLEGE)}</h1><p>Attendance report · ${new Date().toDateString()}</p><table><tr><th>Roll</th><th>Name</th><th>Class</th><th>Present</th><th>Total</th><th>%</th></tr>${r.map(s=>`<tr><td>${esc(s.roll)}</td><td>${esc(s.name)}</td><td>${esc(s.class)}</td><td>${s.present}</td><td>${s.total}</td><td class="${s.total&&s.pct<75?'low':''}">${s.pct}%</td></tr>`).join('')}</table><p>Students in red are below 75%. In the print window, choose "Save as PDF".</p></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300)}
+fetch('/api/brand').then(r=>r.json()).then(applyBrand).catch(()=>{});
+if(token)start();
+</script></body></html>
